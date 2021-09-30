@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link href="https://api.aok.network/static/favicon.png" rel="icon" type="image/x-icon"/>
+
+		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+		<script src="/static/bitcoin.min.js"></script>
+
+		<title>Callback</title>
+
+		<style type="text/css">
+			body, html {
+				height: 100%;
+				padding: 0;
+				margin: 0;
+			}
+			.wrapper {
+				height: 100%;
+				padding: 0;
+				margin: 0;
+				display: -webkit-box;
+				display: -moz-box;
+				display: -ms-flexbox;
+				display: -webkit-flex;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			#code canvas {
+				max-width: 100%;
+			}
+			#userpic {
+				margin: 20px 0px;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrapper">
+			<div class="inner text-center">
+				<div class="col-12">
+					<div id="code"></div>
+					<div id="result"></div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			function uuid4() {
+				return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function(c) {
+					var r = Math.random() * 16 | 0, v = c == "x" ? r : (r & 0x3 | 0x8);
+					return v.toString(16);
+				});
+			}
+
+			const session = uuid4()
+			let host = "http://0.0.0.0:4321";
+			let socket = io(host, {"transports": ["websocket"], "upgrade": false});
+
+			socket.emit("callback", session, function(data) {
+				let callback_url = host + "/call/" + session
+				$("#code").qrcode("aok://sign?callback=" + callback_url + "&message=" + session)
+			})
+
+			socket.on(session, function(data) {
+				if (bitcoin.message.verify(session, data.address, data.signature, "\x14AOK Signed Message:\n")) {
+					$("#code").hide()
+
+					$("#result").append(`
+						<div>
+							<img id="userpic" src="https://source.boringavatars.com/marble/120/${data.address}?colors=264653,2a9d8f,e9c46a,f4a261,e76f51"/>
+						</div>
+
+						<span class="small">
+							Welcome <b>${data.address}</b>
+						<span/>
+					`)
+				}
+			})
+		</script>
+	</body>
+</html>
