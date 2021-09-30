@@ -18,6 +18,13 @@ args = {
 def index():
     return render_template("index.html")
 
+@app.route("/app.json")
+def app_json():
+    return {
+        "name": "Callback Test",
+        "icon": "https://source.boringavatars.com/beam/120/codepillow?colors=264653,2a9d8f,e9c46a,f4a261,e76f51"
+    }
+
 @app.route("/call/<string:session>", methods=["POST"])
 @use_args(args, location="json")
 def call(args, session):
