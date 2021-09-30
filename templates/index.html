@@ -59,7 +59,7 @@
 			}
 
 			const session = uuid4()
-			let host = "http://0.0.0.0:4321";
+			let host = "https://callback.codepillow.io";
 			let socket = io(host, {"transports": ["websocket"], "upgrade": false});
 
 			socket.emit("callback", session, function(data) {
